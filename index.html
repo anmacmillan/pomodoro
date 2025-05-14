@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⏳ Pomodoro - 60:00</title>
+  <style>
+    :root {
+      --bg-color: #1e1e2f;
+      --text-color: #fff;
+      --button-bg: #3f51b5;
+      --button-hover: #5c6bc0;
+      --circle-bg: #2f2f3f;
+      --circle-fg: #76c7c0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .clock {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      z-index: 2;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .circle-container {
+      position: relative;
+      width: 250px;
+      height: 250px;
+      margin-bottom: 20px;
+    }
+
+    svg {
+      transform: rotate(-90deg);
+    }
+
+    circle {
+      fill: none;
+      stroke-width: 12;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .controls button, .controls select {
+      background-color: var(--button-bg);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    .controls button:hover, .controls select:hover {
+      background-color: var(--button-hover);
+    }
+
+    .mode-select {
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="circle-container">
+    <svg width="250" height="250">
+      <circle r="100" cx="125" cy="125" stroke="var(--circle-bg)" />
+      <circle r="100" cx="125" cy="125" stroke="var(--circle-fg)" id="progressCircle" stroke-dasharray="628" stroke-dashoffset="0" />
+    </svg>
+    <div class="clock" id="timerDisplay">60:00</div>
+  </div>
+
+  <div class="mode-select">
+    <label for="mode">Mode: </label>
+    <select id="mode" onchange="changeMode()">
+      <option value="60">Deep Work (60 min)</option>
+      <option value="25">Pomodoro (25 min)</option>
+      <option value="5">Short Break (5 min)</option>
+      <option value="15">Long Break (15 min)</option>
+    </select>
+    <button onclick="toggleTheme()">🌓 Theme</button>
+  </div>
+
+  <div class="controls">
+    <button onclick="toggleTimer()" id="toggleBtn">Start</button>
+    <button onclick="resetTimer()">Reset</button>
+  </div>
+
+  <script>
+    let totalSeconds = 60 * 60;
+    let remainingSeconds = totalSeconds;
+    let interval = null;
+    let isRunning = false;
+    const circle = document.getElementById('progressCircle');
+    const circleLength = 2 * Math.PI * 100;
+    circle.style.strokeDasharray = circleLength;
+
+    function formatTime(seconds) {
+      const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const s = String(seconds % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function updateDisplay() {
+      const timeStr = formatTime(remainingSeconds);
+      document.getElementById('timerDisplay').textContent = timeStr;
+      document.title = `⏳ Pomodoro - ${timeStr}`;
+      const progress = (totalSeconds - remainingSeconds) / totalSeconds;
+      circle.style.strokeDashoffset = circleLength * (1 - progress);
+    }
+
+    function tick() {
+      if (remainingSeconds > 0) {
+        remainingSeconds--;
+        updateDisplay();
+      } else {
+        clearInterval(interval);
+        isRunning = false;
+        document.getElementById('toggleBtn').textContent = 'Start';
+        alert('⏰ Time is up!');
+      }
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        clearInterval(interval);
+        isRunning = false;
+        document.getElementById('toggleBtn').textContent = 'Start';
+      } else {
+        interval = setInterval(tick, 1000);
+        isRunning = true;
+        document.getElementById('toggleBtn').textContent = 'Pause';
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(interval);
+      isRunning = false;
+      remainingSeconds = totalSeconds;
+      updateDisplay();
+      document.getElementById('toggleBtn').textContent = 'Start';
+    }
+
+    function changeMode() {
+      const mins = parseInt(document.getElementById('mode').value);
+      totalSeconds = mins * 60;
+      remainingSeconds = totalSeconds;
+      resetTimer();
+    }
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const dark = getComputedStyle(root).getPropertyValue('--bg-color') === '#1e1e2f';
+      if (dark) {
+        root.style.setProperty('--bg-color', '#f4f4f4');
+        root.style.setProperty('--text-color', '#111');
+        root.style.setProperty('--button-bg', '#444');
+        root.style.setProperty('--button-hover', '#666');
+        root.style.setProperty('--circle-bg', '#ddd');
+        root.style.setProperty('--circle-fg', '#76c7c0');
+      } else {
+        root.style.setProperty('--bg-color', '#1e1e2f');
+        root.style.setProperty('--text-color', '#fff');
+        root.style.setProperty('--button-bg', '#3f51b5');
+        root.style.setProperty('--button-hover', '#5c6bc0');
+        root.style.setProperty('--circle-bg', '#2f2f3f');
+        root.style.setProperty('--circle-fg', '#76c7c0');
+      }
+    }
+
+    updateDisplay();
+  </script>
+</body>
+</html>
